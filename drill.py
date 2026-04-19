@@ -24,8 +24,13 @@ def train_decision_tree(X_train, y_train, max_depth=5, random_state=42):
     Returns:
         Fitted DecisionTreeClassifier.
     """
-    # TODO: Create and fit a DecisionTreeClassifier
-    pass
+    # Create and fit a DecisionTreeClassifier
+    model = DecisionTreeClassifier(
+        max_depth=max_depth,
+        random_state=random_state
+    )
+    model.fit(X_train, y_train)
+    return model
 
 
 def get_feature_importances(model, feature_names):
@@ -38,8 +43,16 @@ def get_feature_importances(model, feature_names):
     Returns:
         Dictionary mapping feature name to importance value, sorted descending.
     """
-    # TODO: Extract importances and return as a sorted dictionary
-    pass
+    # Extract importances and return as a sorted dictionary
+    importances = model.feature_importances_
+
+    importance_dict = dict(zip(feature_names, importances))
+
+    sorted_dict = dict(
+        sorted(importance_dict.items(), key=lambda x: x[1], reverse=True)
+    )
+
+    return sorted_dict
 
 
 def train_balanced_forest(X_train, y_train, X_test, y_test,
@@ -55,9 +68,28 @@ def train_balanced_forest(X_train, y_train, X_test, y_test,
     Returns:
         Dictionary with keys: 'precision', 'recall', 'f1'.
     """
-    # TODO: Train RandomForestClassifier with class_weight='balanced',
+    # Train RandomForestClassifier with class_weight='balanced',
     #       predict on test set, compute and return metrics
-    pass
+    model = RandomForestClassifier(
+        n_estimators=n_estimators,
+        class_weight='balanced',
+        random_state=random_state
+    )
+
+    model.fit(X_train, y_train)
+
+    '''Predict probabilities and apply threshold to get class predictions instead of default 0.5.'''
+    y_probs = model.predict_proba(X_test)[:, 1]
+    y_pred = (y_probs >= 0.3).astype(int)
+
+    print("Predicted class distribution:", np.bincount(y_pred))
+    print("Actual class distribution:", np.bincount(y_test))
+
+    return {
+        'precision': precision_score(y_test, y_pred),
+        'recall': recall_score(y_test, y_pred),
+        'f1': f1_score(y_test, y_pred)
+    }
 
 
 if __name__ == "__main__":
